@@ -87,12 +87,27 @@ namespace BooksAPI.Controllers
         }
 
         [Route("{genre}")]
-        [ResponseType(typeof(BookDetailDto))]
+        [ResponseType(typeof(BookDto))]
         public async Task<IHttpActionResult> GetBooksByGenret(string genre)
         {
-            return Ok(await db.Books.Include(a => a.Author)
-                        .Where(a => a.Genre.Contains(genre))
-                        .Select(AsBookDto).ToListAsync());
+            //return Ok(await db.Books.Include(a => a.Author)
+            //            .Where(a => a.Genre.Contains(genre))
+            //            .Select(AsBookDto).ToListAsync());
+
+            var book = await (from b in db.Books.Include(b => b.Author)
+                              where b.Genre.Contains(genre)
+                              select new BookDto
+                              {
+                                  Author = b.Author.Name,
+                                  Genre = b.Genre,
+                                  Title = b.Title
+                              }).ToListAsync();
+            if (book == null)
+            {
+                return NotFound();
+            }
+            return Ok(book);
+
         }       
 
         [HttpGet]
